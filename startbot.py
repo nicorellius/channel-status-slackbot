@@ -4,25 +4,18 @@ import time
 from slackclient import SlackClient
 
 # starterbot's ID as an environment variable
+# set these to your specifics
 BOT_ID = os.environ.get("BOT_ID")
 CHANNEL_ID = os.environ.get("CHANNEL_ID")
-CHANNEL_NAME = 'appservers'
+CHANNEL_NAME = 'appservers'  # use whatever channel name you want...
 
 # constants
-# AT_BOT = "<@" + BOT_ID + ">"
 AT_BOT = '<@{0}>'.format(BOT_ID)
 EXAMPLE_COMMAND = 'do'
-APPSERVER_COMMAND = 'check appservers'
+APPSERVER_COMMAND = 'check appservers'  # add more commands as you see fit
 
 # instantiate Slack client
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
-
-
-def get_users():
-
-    users_list = slack_client.api_call('users.list')
-
-    return users_list.get('members')
 
 
 def get_time(input_time):
