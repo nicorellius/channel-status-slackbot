@@ -1,3 +1,7 @@
+"""
+Utility module for Channel Status SlackBot.
+"""
+
 import os
 import time
 

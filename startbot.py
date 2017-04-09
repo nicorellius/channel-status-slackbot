@@ -3,12 +3,8 @@ Start the SlackBot and handle the commands given to it.
 """
 
 import os
-
-
 from slackclient import SlackClient
-
 import config
-
 from utils import get_time
 
 # instantiate Slack client
