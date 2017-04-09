@@ -1,20 +1,18 @@
+"""
+Start the SlackBot and handle the commands given to it.
+"""
+
 import os
-import time
+
 
 from slackclient import SlackClient
 
 import config
 
+from utils import get_time
+
 # instantiate Slack client
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
-
-
-def get_time(input_time):
-
-    return time.strftime(
-        '%Y-%m-%d %H:%M:%S',
-        time.localtime(float(input_time))
-    )
 
 
 def handle_command(cmd, chan):
