@@ -20,7 +20,7 @@ EXAMPLE_COMMAND = 'do'
 APPSERVER_COMMAND = 'check appservers'
 
 # Increasing this above the number of members throws an error.
-NUMBER_MESSAGES = 10
+NUMBER_MESSAGES = 20
 
 # This is a list of servers we monitor on the above channel.
 SERVER_LIST = [

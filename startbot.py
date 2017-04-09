@@ -3,11 +3,14 @@ Start the SlackBot and handle the commands given to it.
 """
 
 import os
+import time
+
 from slackclient import SlackClient
+
 import config
 from utils import get_time
 
-# instantiate Slack client
+# Instantiate Slack client
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 
@@ -25,7 +28,7 @@ def handle_command(cmd, chan):
 
     if cmd.startswith(config.APPSERVER_COMMAND):
 
-        # somewhat arbitrary value of 10 most recent messages
+        # Somewhat arbitrary value of recent messages
         num_messages = config.NUMBER_MESSAGES
         channels_history = slack_client.api_call('channels.history',
                                                  channel=config.CHANNEL_ID,
@@ -43,12 +46,12 @@ def handle_command(cmd, chan):
 
                 while count < num_messages:
 
-                    # get current user from messages based on count
+                    # Get current user from messages based on count
                     user = slack_client.api_call(
                             'users.info',
                             user=messages[count]['user'])
 
-                    # append user and corresponding message to list
+                    # Append user and corresponding message to list
                     # if the message contains a server name
                     server_list = config.SERVER_LIST
 
@@ -61,14 +64,11 @@ def handle_command(cmd, chan):
                                 messages[count]['text'],
                             ))
 
-                    # make list more readable by joining line over line
-                    # return_list = '\n'.join(temp_list)
+                    # Make list more readable by joining line over line
                     response = '\n'.join(temp_list)
 
+                    # Bump the counter.
                     count += 1
-
-                # the actual response we want, includes users and messages
-                # response = '{0}'.format(return_list)
 
             else:
                 response = 'Your API call to channels.history failed.'
