@@ -3,16 +3,7 @@ import time
 
 from slackclient import SlackClient
 
-# starterbot's ID as an environment variable
-# set these to your specifics
-BOT_ID = os.environ.get("BOT_ID")
-CHANNEL_ID = os.environ.get("CHANNEL_ID")
-CHANNEL_NAME = 'appservers'  # use whatever channel name you want...
-
-# constants
-AT_BOT = '<@{0}>'.format(BOT_ID)
-EXAMPLE_COMMAND = 'do'
-APPSERVER_COMMAND = 'check appservers'  # add more commands as you see fit
+import config
 
 # instantiate Slack client
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
@@ -20,26 +11,30 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 def get_time(input_time):
 
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(float(input_time)))
+    return time.strftime(
+        '%Y-%m-%d %H:%M:%S',
+        time.localtime(float(input_time))
+    )
 
 
-def handle_command(cmd, chnl):
+def handle_command(cmd, chan):
     """Receives commands directed at the bot and determines if they
        are valid commands. If so, then acts on the commands. If not,
        returns back what it needs for clarification."""
 
-    response = "Not sure what you mean. Use the *" + EXAMPLE_COMMAND + \
-               "* command with numbers, delimited by spaces."
+    response = "Not sure what you mean. Try the *{0}* command.".format(
+        config.APPSERVER_COMMAND
+    )
     
-    if cmd.startswith(EXAMPLE_COMMAND):
-        response = "Sure...write some more code then I can do that!"
+    if cmd.startswith(config.EXAMPLE_COMMAND):
+        response = "Sure... write some more code then I can do that!"
 
-    if cmd.startswith(APPSERVER_COMMAND):
+    if cmd.startswith(config.APPSERVER_COMMAND):
 
         # somewhat arbitrary value of 10 most recent messages
-        num_messages = 10
+        num_messages = config.NUMBER_MESSAGES
         channels_history = slack_client.api_call('channels.history',
-                                                 channel=CHANNEL_ID,
+                                                 channel=config.CHANNEL_ID,
                                                  count=num_messages)
 
         try:
@@ -61,10 +56,7 @@ def handle_command(cmd, chnl):
 
                     # append user and corresponding message to list
                     # if the message contains a server name
-                    server_list = [
-                        'merlin', 'taliesin', 'arthur', 'lancelot',
-                        'actin', 'datacruncher',
-                    ]
+                    server_list = config.SERVER_LIST
 
                     for server in server_list:
 
@@ -75,27 +67,30 @@ def handle_command(cmd, chnl):
                                 messages[count]['text'],
                             ))
 
-                    # make list more readable by joining linie over line
-                    return_list = '\n'.join(temp_list)
+                    # make list more readable by joining line over line
+                    # return_list = '\n'.join(temp_list)
+                    response = '\n'.join(temp_list)
 
                     count += 1
 
                 # the actual response we want, includes users and messages
-                response = '{0}'.format(return_list)
+                # response = '{0}'.format(return_list)
 
             else:
                 response = 'Your API call to channels.history failed.'
 
         except ConnectionError:
-            response = 'you have requested information about appservers.'
+            response = 'You have requested information about {0}.'.format(
+                config.CHANNEL_NAME
+            )
 
-    slack_client.api_call("chat.postMessage", channel=chnl,
+    slack_client.api_call("chat.postMessage", channel=chan,
                           text=response, as_user=True)
 
 
 def parse_slack_output(slack_rtm_output):
     """The Slack Real Time Messaging API is an events firehose.
-       this parsing function returns None unless a message is
+       This parsing function returns None unless a message is
        directed at the Bot, based on its ID."""
 
     output_list = slack_rtm_output
@@ -104,11 +99,12 @@ def parse_slack_output(slack_rtm_output):
     
         for output in output_list:
     
-            if output and 'text' in output and AT_BOT in output['text']:
+            if output and 'text' in output and config.AT_BOT in output['text']:
     
                 # return text after the @ mention, whitespace removed
-                return output['text'].split(AT_BOT)[1].strip().lower(), \
-                    output['channel']
+                return output['text'].split(
+                    config.AT_BOT
+                )[1].strip().lower(), output['channel']
 
     return None, None
 
@@ -118,7 +114,9 @@ if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1  # 1 second delay between reading from firehose
 
     if slack_client.rtm_connect():
-        print("StarterBot connected and running!")
+        print("[{0}] Channel Status SlackBot connected and running!".format(
+            get_time(int(time.time())))
+        )
 
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
@@ -129,4 +127,6 @@ if __name__ == "__main__":
             time.sleep(READ_WEBSOCKET_DELAY)
 
     else:
-        print("Connection failed. Invalid Slack token or bot ID?")
+        print("[{0}] Connection failed. Invalid Slack token or bot ID?".format(
+            get_time(int(time.time()))
+        ))
