@@ -8,7 +8,7 @@ import time
 from slackclient import SlackClient
 
 import config
-from utils import get_time
+from utils import _get_time
 
 # Instantiate Slack client
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
@@ -34,49 +34,50 @@ def handle_command(cmd, chan):
                                                  channel=config.CHANNEL_ID,
                                                  count=num_messages)
 
-        try:
+        if channels_history.get('ok'):
 
-            if channels_history.get('ok'):
+            # fetch all messages from channels.history
+            messages = channels_history.get('messages')
 
-                # fetch all messages from channels.history
-                messages = channels_history.get('messages')
+            user = slack_client.api_call('users.info', user='starterbot')
+            count = 0
+            temp_list = []
 
-                count = 0
-                temp_list = []
+            while count < num_messages:
 
-                while count < num_messages:
-
+                try:
                     # Get current user from messages based on count
-                    user = slack_client.api_call(
-                            'users.info',
-                            user=messages[count]['user'])
+                    user = slack_client.api_call('users.info',
+                                                 user=messages[count]['user'])
 
-                    # Append user and corresponding message to list
-                    # if the message contains a server name
-                    server_list = config.SERVER_LIST
+                except IndexError:
+                    response = "Number of messages is set too high."
 
-                    for server in server_list:
+                else:
+                    # To avoid IndexError from `NUMBER_MESSAGES` being too high
+                    num_messages = len(messages) - 1
 
-                        if server in messages[count]['text']:
-                            temp_list.append('[{0}] {1}: {2}'.format(
-                                get_time(messages[count]['ts']),
-                                user['user']['name'],
-                                messages[count]['text'],
-                            ))
+                # Append user and corresponding message to list
+                # if the message contains a server name
+                server_list = config.SERVER_LIST
 
-                    # Make list more readable by joining line over line
-                    response = '\n'.join(temp_list)
+                for server in server_list:
 
-                    # Bump the counter.
-                    count += 1
+                    if server in messages[count]['text']:
+                        temp_list.append('[{0}] {1}: {2}'.format(
+                            _get_time(messages[count]['ts']),
+                            user['user']['name'],
+                            messages[count]['text'],
+                        ))
 
-            else:
-                response = 'Your API call to channels.history failed.'
+                # Make list more readable by joining line over line
+                response = '\n'.join(temp_list)
 
-        except ConnectionError:
-            response = 'You have requested information about {0}.'.format(
-                config.CHANNEL_NAME
-            )
+                # Bump the counter.
+                count += 1
+
+        else:
+            response = 'Your API call to channels.history failed.'
 
     slack_client.api_call("chat.postMessage", channel=chan,
                           text=response, as_user=True)
@@ -109,7 +110,7 @@ if __name__ == "__main__":
 
     if slack_client.rtm_connect():
         print("[{0}] Channel Status SlackBot connected and running!".format(
-            get_time(int(time.time())))
+            _get_time(int(time.time())))
         )
 
         while True:
@@ -122,5 +123,5 @@ if __name__ == "__main__":
 
     else:
         print("[{0}] Connection failed. Invalid Slack token or bot ID?".format(
-            get_time(int(time.time()))
+            _get_time(int(time.time()))
         ))
