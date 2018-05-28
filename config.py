@@ -17,10 +17,24 @@ CHANNEL_NAME = 'appservers'
 
 # Add more commands as you see fit.
 EXAMPLE_COMMAND = 'do'
-APPSERVER_COMMAND = 'check appservers'
+APPSERVER_COMMAND = 'check appservers'  # Use: `@starterbot check appservers`
 
-# Increasing this above the number of members throws an error.
-NUMBER_MESSAGES = 20
+"""
+`NUMBER_MESSAGES` should be less than the number of messages in the channel.
+For example, if there are 6 messages in the channel that would be fetched 
+by this bot, then the `NUMBER_MESSAGES` should not be set to be equal to 
+
+    Traceback (most recent call last):
+      File "startbot.py", line 119, in <module>
+        handle_command(command, channel)
+      File "startbot.py", line 52, in handle_command
+        user=messages[count]['user'])
+    IndexError: list index out of range
+    
+This is a bug that was recently fixed by fetching the number of messages in
+the channels.history and then setting the value this minus one. See line
+"""
+NUMBER_MESSAGES = 100
 
 # This is a list of servers we monitor on the above channel.
 SERVER_LIST = [
