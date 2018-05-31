@@ -15,9 +15,11 @@ slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 
 def handle_command(cmd, chan):
-    """Receives commands directed at the bot and determines if they
-       are valid commands. If so, then acts on the commands. If not,
-       returns back what it needs for clarification."""
+    """
+    Receives commands directed at the bot and determines if they
+    are valid commands. If so, then acts on the commands. If not,
+    returns back what it needs for clarification.
+    """
 
     response = "Not sure what you mean. Try the *{0}* command.".format(
         config.APPSERVER_COMMAND
@@ -84,9 +86,11 @@ def handle_command(cmd, chan):
 
 
 def parse_slack_output(slack_rtm_output):
-    """The Slack Real Time Messaging API is an events firehose.
-       This parsing function returns None unless a message is
-       directed at the Bot, based on its ID."""
+    """
+    The Slack Real Time Messaging API is an events firehose.
+    This parsing function returns None unless a message is
+    directed at the Bot, based on its ID.
+    """
 
     output_list = slack_rtm_output
 
@@ -97,9 +101,9 @@ def parse_slack_output(slack_rtm_output):
             if output and 'text' in output and config.AT_BOT in output['text']:
     
                 # return text after the @ mention, whitespace removed
-                return output['text'].split(
-                    config.AT_BOT
-                )[1].strip().lower(), output['channel']
+                text = output['text'].split(config.AT_BOT)[1].strip().lower()
+
+                return text, output['channel']
 
     return None, None
 
